@@ -73,6 +73,8 @@ func (ch *ErrorChecker) Run(ctx context.Context) {
 
 				// agent is probably not running and this will be detected by pid watcher
 				continue
+			} else {
+				ch.log.Warnw("got status", "status", status)
 			}
 
 			// call was successful, reset counter

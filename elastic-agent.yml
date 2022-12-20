@@ -146,7 +146,7 @@ inputs:
 
 # Sets log level. The default log level is info.
 # Available log levels are: error, warning, info, debug
-#agent.logging.level: info
+agent.logging.level: debug
 
 # Enable debug output for selected components. To enable all selectors use ["*"]
 # Other available selectors are "beat", "publish", "service"
