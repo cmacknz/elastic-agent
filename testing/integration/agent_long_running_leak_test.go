@@ -72,6 +72,8 @@ func TestLongRunningAgentForLeaks(t *testing.T) {
 		},
 	})
 
+	t.Skip("https://github.com/elastic/elastic-agent/issues/5300")
+
 	if os.Getenv("TEST_LONG_RUNNING") == "" {
 		t.Skip("not running extended test unless TEST_LONG_RUNNING is set")
 	}
