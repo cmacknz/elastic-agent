@@ -139,39 +139,13 @@ func TestUpgradeCmd(t *testing.T) {
 		assert.Contains(t, err.Error(), unsupportedUpgradeError.Error())
 	})
 
-	t.Run("proceed with upgrade if fleet managed, privileged, --force is set", func(t *testing.T) {
+	t.Run("proceed with upgrade if fleet managed, privileged, --force, --skip-verify is set", func(t *testing.T) {
 		mockClient := client.NewMockClient(t)
 		mockClient.EXPECT().State(mock.Anything).Return(&client.AgentState{State: cproto.State_HEALTHY}, nil)
 		mockClient.EXPECT().Upgrade(mock.Anything, mock.Anything, false, mock.Anything, mock.Anything, mock.Anything).Return("mockVersion", nil)
 
 		args := []string{"8.13.0"} // Version argument
 		streams := cli.NewIOStreams()
-		cmd := newUpgradeCommandWithArgs(args, streams)
-		cmd.SetContext(context.Background())
-		err := cmd.Flags().Set(flagForce, "true")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		commandInput := &upgradeInput{
-			streams,
-			cmd,
-			args,
-			mockClient,
-			client.AgentStateInfo{IsManaged: true},
-			true,
-		}
-
-		err = upgradeCmdWithClient(commandInput)
-
-		assert.NoError(t, err)
-	})
-	t.Run("abort upgrade if the agent is fleet managed and skip-verify flag is set", func(t *testing.T) {
-		mockClient := client.NewMockClient(t)
-
-		args := []string{"8.13.0"} // Version argument
-		streams := cli.NewIOStreams()
-
 		cmd := newUpgradeCommandWithArgs(args, streams)
 		cmd.SetContext(context.Background())
 		err := cmd.Flags().Set(flagForce, "true")
@@ -194,8 +168,7 @@ func TestUpgradeCmd(t *testing.T) {
 
 		err = upgradeCmdWithClient(commandInput)
 
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), skipVerifyNotAllowedError.Error())
+		assert.NoError(t, err)
 	})
 	t.Run("abort upgrade if the agent is standalone, the user is unprivileged and skip-verify flag is set", func(t *testing.T) {
 		mockClient := client.NewMockClient(t)

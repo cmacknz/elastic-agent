@@ -37,10 +37,9 @@ const (
 )
 
 var (
-	unsupportedUpgradeError   error = errors.New("this agent is fleet managed and must be upgraded using Fleet")
-	nonRootExecutionError           = errors.New("upgrade command needs to be executed as root for fleet managed agents")
-	skipVerifyNotAllowedError       = errors.New(fmt.Sprintf("\"%s\" flag is not allowed when upgrading a fleet managed agent using the cli", flagSkipVerify))
-	skipVerifyNotRootError          = errors.New(fmt.Sprintf("user needs to be root to use \"%s\" flag when upgrading standalone agents", flagSkipVerify))
+	unsupportedUpgradeError error = errors.New("this agent is fleet managed and must be upgraded using Fleet")
+	nonRootExecutionError         = errors.New("upgrade command needs to be executed as root for fleet managed agents")
+	skipVerifyNotRootError        = errors.New(fmt.Sprintf("user needs to be root to use \"%s\" flag when upgrading standalone agents", flagSkipVerify))
 )
 
 func newUpgradeCommandWithArgs(_ []string, streams *cli.IOStreams) *cobra.Command {
@@ -128,10 +127,9 @@ func checkUpgradable(cond upgradeCond) error {
 			return unsupportedUpgradeError
 		}
 
-		if cond.skipVerify {
-			return skipVerifyNotAllowedError
-		}
-
+		// Require root to upgrade if Fleet managed, the non-root upgrade path is
+		// to trigger an upgrade remotely through Fleet. Upgrading a Fleet managed
+		// agent using the CLI is the backup path in case of issues with remote upgrades.
 		if !cond.isRoot {
 			return nonRootExecutionError
 		}
