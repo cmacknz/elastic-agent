@@ -131,6 +131,30 @@ if [[ "$NO_EXTRACT" == false ]]; then
         rmdir "${inner[0]}" 2>/dev/null || true
       fi
     fi
+
+    # Replace osqueryd with the copy from the original baseline.  SNAPSHOT
+    # external artifacts ship an unstripped osqueryd (debug_info) while the
+    # original release package has the stripped version.  osqueryd is not our
+    # code so we use the original for a fair size comparison.
+    platform=$(platform_of "$base")
+    orig_dir=""
+    for c in "$ORIGINAL_DIR"/elastic-agent-*-"$platform"/; do
+      [[ -d "$c" ]] && orig_dir="$c" && break
+    done
+    if [[ -n "$orig_dir" ]]; then
+      for orig_comp in "$orig_dir"/data/*/components/; do
+        [[ -d "$orig_comp" ]] || continue
+        for dest_comp in "$dest"/data/*/components/; do
+          [[ -d "$dest_comp" ]] || continue
+          for name in osqueryd osqueryd.exe; do
+            if [[ -f "$orig_comp/$name" && -f "$dest_comp/$name" ]]; then
+              cp -f "$orig_comp/$name" "$dest_comp/$name"
+              echo "    Replaced $name with original (stripped) baseline copy"
+            fi
+          done
+        done
+      done
+    fi
   done
 fi
 
@@ -278,13 +302,22 @@ binary_breakdown() {
   raw_ea_dir=$(dirname "$raw_comp")
   strip_ea_dir=$(dirname "$strip_comp")
   orig_ea_dir=$(dirname "$orig_comp")
-  # The main agent binary is named elastic-agent on Unix and elastic-agent.exe on Windows.
-  local ea_name="elastic-agent"
-  [[ -f "$raw_ea_dir/elastic-agent.exe" ]] && ea_name="elastic-agent.exe"
+  # On macOS the top-level elastic-agent is a shell launcher; the real Mach-O
+  # binary lives inside elastic-agent.app/Contents/MacOS/elastic-agent.
+  # On Windows the binary is elastic-agent.exe.
+  local ea_rel="elastic-agent"
+  local ea_label="elastic-agent (main binary)"
+  if [[ -d "$raw_ea_dir/elastic-agent.app" ]]; then
+    ea_rel="elastic-agent.app/Contents/MacOS/elastic-agent"
+    ea_label="elastic-agent.app/…/elastic-agent (main binary)"
+  elif [[ -f "$raw_ea_dir/elastic-agent.exe" ]]; then
+    ea_rel="elastic-agent.exe"
+    ea_label="elastic-agent.exe (main binary)"
+  fi
   local ea_ob ea_rb ea_sb ea_pct
-  ea_ob=$(file_bytes "$orig_ea_dir/$ea_name")
-  ea_rb=$(file_bytes "$raw_ea_dir/$ea_name")
-  ea_sb=$(file_bytes "$strip_ea_dir/$ea_name")
+  ea_ob=$(file_bytes "$orig_ea_dir/$ea_rel")
+  ea_rb=$(file_bytes "$raw_ea_dir/$ea_rel")
+  ea_sb=$(file_bytes "$strip_ea_dir/$ea_rel")
   if (( ea_ob > 0 )); then
     ea_pct=$(awk "BEGIN { printf \"%+.1f%%\", (($ea_sb - $ea_ob) / $ea_ob) * 100 }")
   elif (( ea_sb > 0 )); then
@@ -293,7 +326,7 @@ binary_breakdown() {
     ea_pct="—"
   fi
   printf "  %-46s %12s %12s %12s %8s\n" \
-    "$ea_name (main binary)" \
+    "$ea_label" \
     "$(human $ea_ob)" "$(human $ea_rb)" "$(human $ea_sb)" "$ea_pct"
 }
 
