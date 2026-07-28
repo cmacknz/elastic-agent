@@ -6,17 +6,3 @@
 // +build linux
 
 package components
-
-import (
-	"go.opentelemetry.io/collector/receiver"
-	profilingreceiver "go.opentelemetry.io/ebpf-profiler/collector"
-)
-
-func addOsSpecificReceivers(receivers []receiver.Factory) []receiver.Factory {
-
-	receivers = append(receivers,
-		profilingreceiver.NewFactory())
-
-	return receivers
-
-}

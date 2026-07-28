@@ -6,9 +6,3 @@
 // +build !linux
 
 package components
-
-import "go.opentelemetry.io/collector/receiver"
-
-func addOsSpecificReceivers(receivers []receiver.Factory) []receiver.Factory {
-	return receivers
-}

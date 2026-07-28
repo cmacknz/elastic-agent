@@ -6,24 +6,9 @@
 
 package beats
 
-import (
-	"github.com/spf13/cobra"
+import "github.com/spf13/cobra"
 
-	auditbeat "github.com/elastic/beats/v7/x-pack/auditbeat/cmd"
-	filebeat "github.com/elastic/beats/v7/x-pack/filebeat/cmd"
-	heartbeat "github.com/elastic/beats/v7/x-pack/heartbeat/cmd"
-	metricbeat "github.com/elastic/beats/v7/x-pack/metricbeat/cmd"
-	osquerybeat "github.com/elastic/beats/v7/x-pack/osquerybeat/cmd"
-	packetbeat "github.com/elastic/beats/v7/x-pack/packetbeat/cmd"
-)
-
-func AddCommands(cmd *cobra.Command) {
-	cmd.AddCommand(
-		prepareCommand(auditbeat.RootCmd),
-		prepareCommand(filebeat.Filebeat()),
-		prepareCommand(heartbeat.RootCmd),
-		prepareCommand(metricbeat.Initialize()),
-		prepareCommand(osquerybeat.RootCmd),
-		prepareCommand(packetbeat.RootCmd),
-	)
-}
+// AddCommands is a no-op in this endpoint-security prototype build.
+// Beat subcommands are removed to reduce binary size; beats run only as
+// OTel receivers (fbreceiver, mbreceiver, abreceiver, osqreceiver).
+func AddCommands(_ *cobra.Command) {}
